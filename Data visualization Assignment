@@ -88,9 +88,9 @@ population <- na.omit(population)
 # Rename Entity column in second dataset
 colnames(population)[colnames(population)=="Entity"] <- "Area"
 #colnames(population)
-
+population$Area <- as.character(population$Area)
 #View(population)
-#str(population)
+str(population)
 #unique( population$Year )
 ```
 
@@ -133,6 +133,40 @@ p2 <- ggplot() + geom_line(aes(y = population_sum_uk, x = Year),
 p2
 
 
+population_germany<-population %>%
+  filter(Area=="Germany") 
+population_germany
+#total population in UK across the years
+total_population_germany <- population_germany %>%
+  group_by(Year) %>%
+  summarize(population_sum_germany = sum(Population))
+total_population_germany
+total_population
+pgermany <- ggplot() + geom_line(aes(y = population_sum_germany, x = Year),
+                 data = total_population_germany)
+pgermany
+
+population_poland<-population %>%
+  filter(Area=="Poland") 
+population_germany
+#total population in UK across the years
+total_population_poland <- population_poland %>%
+  group_by(Year) %>%
+  summarize(population_sum_poland = sum(Population))
+total_population_poland
+total_population
+ppoland <- ggplot() + geom_line(aes(y = population_sum_poland, x = Year),
+                 data = total_population_poland)
+ppoland
+
+#compare population growth in different countries
+population_compared<-population %>%
+  filter(Area=="Germany"| Area=="France"| Area=="Spain") 
+population_compared
+unique(population_compared$Area)
+
+# plot, using the aesthetics argument 'colour'
+ggplot(data = population_compared, aes(x = Year, y = Population, colour = Area)) + geom_line()
 
 ```
 
@@ -192,4 +226,103 @@ p3
 
 
 
+```
+
+
+```{r pressure, echo=FALSE}
+#Egg production
+eggs_production<-FAOdataset %>%
+  filter(Item=="Eggs, hen, in shell (number)") 
+eggs_production
+
+#total population in UK across the years
+total_eggs <- eggs_production %>%
+  group_by(Year) %>%
+  summarize(eggs_sum = sum(Value))
+total_eggs
+
+p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
+                 data = total_eggs)
+p3
+
+
+
+#This is meat production (selected only, camel meat of no interest for us) 
+
+#lets filter out what we do not want
+#ireland meet production and below milk production
+ireland_food_prod<-FAOdataset %>%
+  filter(Item=="Meat, pig" | Item=="Meat, chicken")
+ireland_food_prod %>%
+  filter(Area=="Germany")
+ireland_food_prod
+germany_grid<-ggplot(ireland_food_prod) + geom_line(aes(x=Year, y=Value, colour=Item)) +
+  facet_wrap(~Item) +
+  guides(col=guide_legend(ncol=1))
+germany_grid
+ireland_food_prod
+
+
+
+
+
+#sum
+total_ireland_sum <- ireland_food_prod %>%
+  group_by(Year) %>%
+  summarize(mean_ireland_sum = sum(Value))
+total_ireland_sum
+
+# Basic density plot
+qplot(Year, data = total_ireland_sum, geom = "Value")
+# Change density plot line color by group (sex)
+# change line type
+qplot(Year, data = ireland_food_prod, geom = "Value",
+    color = Item, linetype = Item)
+
+
+#plotting irish production of meat
+total_eggs <- eggs_production %>%
+  group_by(Year) %>%
+  summarize(eggs_sum = sum(Value))
+total_eggs
+
+p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
+                 data = total_eggs)
+p3
+
+
+
+#plotting irish production of milk
+ireland_milk_prod<-FAOdataset %>%
+  filter(Item=="Milk, whole fresh cow")
+ireland_milk_prod %>%
+  filter(Area=="Ireland")
+ireland_milk_prod
+total_milk <- ireland_milk_prod %>%
+  group_by(Year) %>%
+  summarize(milk_sum = sum(Value))
+total_eggs
+
+milk <- ggplot() + geom_line(aes(y = milk_sum, x = Year),
+                 data = total_milk)
+milk
+
+
+p1 <- ggplot(data = studentresults_oral, aes(x = Name, y = average_mark_oral)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_text(aes(y = average_mark_oral, label = average_mark_oral))
+p1
+
+
+
+
+#total population in UK across the years
+total_eggs <- eggs_production %>%
+  group_by(Year) %>%
+  summarize(eggs_sum = sum(Value))
+total_eggs
+
+p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
+                 data = total_eggs)
+p3
 ```
