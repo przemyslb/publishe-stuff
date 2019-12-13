@@ -41,7 +41,7 @@ livestock$Domain.Code <- NULL
 #here I deal  with duplicated being in different measuring unit
 livestock <- livestock[livestock$Element == "Production",]
 
-View(livestock)
+#View(livestock)
 livestock$Item <- as.character(livestock$Item)
 livestock$Element <- as.character(livestock$Element)
 livestock$Value <- as.numeric(livestock$Value)
@@ -65,12 +65,6 @@ hist(histogram, breaks=5, main="With breaks=4", xlim=c(-10,100),col="red",ylim=c
   geom_bar(stat = 'identity',fill = 'blue')
 hist(histogram)
 ddd <- livestock$Year
-hist(ddd, breaks=5, main="With breaks=4", xlim=c(-10,100),col="red",ylim=c(0,25))+
-  geom_bar(stat = 'identity',fill = 'blue')
-hist(histogram)
-
-str(FAOdataset)
-ddd
 ```
 ## Including Plots
 
@@ -165,6 +159,7 @@ population_compared<-population %>%
 population_compared
 unique(population_compared$Area)
 
+#FINAL INSIGHTS, COUNTRIES MAY BE CHANGED LATER, CHART WILL BE UPGRAEDED TO LOOK NICER
 # plot, using the aesthetics argument 'colour'
 ggplot(data = population_compared, aes(x = Year, y = Population, colour = Area)) + geom_line()
 
@@ -200,12 +195,7 @@ b
 #separate for eggs
 #meats together
 #Wool
-group_by(livestock) %>%
-  filter(Item=="Eggs, hen, in shell (number)")%>%
-  mutate(sum_value = sum(Value)) %>%
-ggplot(aes(x=Year, y=sum_value, color=Item))+
-  geom_line(size=1.5) +
-  geom_line(aes(y = sum_value), color = "black")
+
 
 
 
@@ -261,7 +251,8 @@ germany_grid<-ggplot(ireland_food_prod) + geom_line(aes(x=Year, y=Value, colour=
   guides(col=guide_legend(ncol=1))
 germany_grid
 ireland_food_prod
-
+# plot, using the aesthetics argument 'colour'
+ggplot(data = ireland_food_prod, aes(x = Year, y = Value, colour = Item)) + geom_line()
 
 
 
@@ -326,3 +317,27 @@ p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
                  data = total_eggs)
 p3
 ```
+
+
+
+
+livestock %>% 
+  group_by(Year) %>% 
+  summarise(value=sum(Value)) %>% 
+  ungroup
+plot2<-ggplot(aes(Year, Value, colour=Item)) +
+  geom_line() +
+  geom_point()
+
+
+# Plot relationship between age and results for mark oral with colors
+scatter2 <- ggplot(livestock, aes(x=livestock$Year,y=livestock$Value, color=livestock$Item))+
+  geom_point() +
+  stat_smooth(method = 'lm', se= FALSE)+
+  labs(title = 'Scatter Plot #2 - Age vs Written Marks by Subject', x = 'Year', y = 'Value')
+scatter2
+```
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
