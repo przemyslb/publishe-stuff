@@ -1,0 +1,195 @@
+---
+title: "ASSIGNMENT MARKDOWN"
+author: "przemek bednarz"
+date: "12/12/2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+library(readr)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(sqldf)
+library(gsubfn)
+library(proto)
+library(RSQLite)
+library(sp)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+## Fix for unreadable numbers
+options(scipen = 999)
+#load dataset
+livestock <- read.csv("~/FAOSTAT_data_11-30-2019.csv")
+# remove columns
+livestock$Flag<- NULL
+livestock$Flag.Description <- NULL
+livestock$Year.Code <- NULL
+livestock$Item.Code <- NULL
+livestock$Element.Code <- NULL
+livestock$Area.Code <- NULL
+livestock$Domain <- NULL
+livestock$Domain.Code <- NULL
+#here I deal  with duplicated being in different measuring unit
+livestock <- livestock[livestock$Element == "Production",]
+
+View(livestock)
+livestock$Item <- as.character(livestock$Item)
+livestock$Element <- as.character(livestock$Element)
+livestock$Value <- as.numeric(livestock$Value)
+livestock$Year <- as.numeric(livestock$Year)
+
+#omit empty values
+livestock <- na.omit(livestock)
+unique(livestock$Item )
+unique(livestock$Element )
+#stats
+colnames(livestock)
+#nrow(livestock)
+str(livestock)
+#View(livestock)
+
+```
+HISTOGRAM FOR IMPORTANT COLUMNS.
+```{r pressure, echo=FALSE}
+histogram <- livestock$Value
+hist(histogram, breaks=5, main="With breaks=4", xlim=c(-10,100),col="red",ylim=c(0,25))+
+  geom_bar(stat = 'identity',fill = 'blue')
+hist(histogram)
+ddd <- livestock$Year
+hist(ddd, breaks=5, main="With breaks=4", xlim=c(-10,100),col="red",ylim=c(0,25))+
+  geom_bar(stat = 'identity',fill = 'blue')
+hist(histogram)
+
+str(FAOdataset)
+ddd
+```
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+#-------------------------------------------------------------------
+population <- read.csv("~/world-population-by-world-regions-post-1820.csv")
+#change column to numeric
+population$Year <- as.numeric(population$Year)
+# remove columns
+population$Code <- NULL
+#omit emtpy values
+population <- na.omit(population)
+# Rename Entity column in second dataset
+colnames(population)[colnames(population)=="Entity"] <- "Area"
+#colnames(population)
+
+#View(population)
+#str(population)
+#unique( population$Year )
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+You can also embed plots, for example:
+
+Filter years
+```{r, echo=FALSE}
+#filter out years
+population <- population[population$Year >= "1961",]
+population <- population[population$Year <= "2017",]
+population <- population[population$Year != "200",]
+population
+#check if only the right years were loaded
+#Check if years loaded properly 
+unique(population$Year)
+
+
+
+
+#total world population across the years
+total_population <- population %>%
+  group_by(Year) %>%
+  summarize(population_sum = sum(Population))
+total_population
+p1 <- ggplot() + geom_line(aes(y = population_sum, x = Year),
+                 data = total_population)
+p1
+population_uk<-population %>%
+  filter(Area=="United Kingdom") 
+population_uk
+#total population in UK across the years
+total_population_uk <- population_uk %>%
+  group_by(Year) %>%
+  summarize(population_sum_uk = sum(Population))
+total_population_uk
+total_population
+p2 <- ggplot() + geom_line(aes(y = population_sum_uk, x = Year),
+                 data = total_population_uk)
+p2
+
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+FAOdataset<-merge(livestock, population)
+FAOdataset
+colnames(FAOdataset)
+nrow(FAOdataset)
+str(FAOdataset)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+ #production of different items compared
+
+
+
+
+b<-ggplot(livestock) + geom_line(aes(x=Year, y=Value, colour=Item)) +
+  facet_wrap(~Item) +
+  guides(col=guide_legend(ncol=1))
+b
+
+
+#teraz musisz zrobic osobno do eggs, meats together i wool osobno.
+#separate for eggs
+#meats together
+#Wool
+group_by(livestock) %>%
+  filter(Item=="Eggs, hen, in shell (number)")%>%
+  mutate(sum_value = sum(Value)) %>%
+ggplot(aes(x=Year, y=sum_value, color=Item))+
+  geom_line(size=1.5) +
+  geom_line(aes(y = sum_value), color = "black")
+
+
+
+#Eggs 
+eggs_production<-livestock %>%
+  filter(Item=="Eggs, hen, in shell (number)") 
+eggs_production
+#total population in UK across the years
+total_eggs <- eggs_production %>%
+  group_by(Year) %>%
+  summarize(eggs_sum = sum(Value))
+total_eggs
+
+p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
+                 data = total_eggs)
+p3
+
+
+
+
+```
