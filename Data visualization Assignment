@@ -166,6 +166,12 @@ ggplot(data = population_compared, aes(x = Year, y = Population, colour = Area))
 p<-ggplot(population_compared,aes(x=Year,y=Population,fill=Area))  
 p + geom_bar(stat='identity') + ggtitle('Population growth') + xlab('Year') + ylab('Population numbers') + theme(plot.title = element_text(hjust = 0.5)) + guides(fill = guide_legend(title='Area')) 
 p
+
+#population growth facet grid. now choose which will be the final and make nicer
+b<-ggplot(population_compared) + geom_line(aes(x=Year, y=Population, colour=Area)) +
+  facet_wrap(~Area) +
+  guides(col=guide_legend(ncol=1))
+b
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
