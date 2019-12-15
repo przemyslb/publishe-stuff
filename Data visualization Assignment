@@ -1,7 +1,7 @@
 ---
-title: "ASSIGNMENT MARKDOWN"
+title: "ASSIGNMENT DATA VISUALIZATION"
 author: "przemek bednarz"
-date: "12/12/2019"
+date: "15/12/2019"
 output: word_document
 ---
 
@@ -64,10 +64,8 @@ hist(histogram, breaks=5, main="With breaks=4", xlim=c(-10,100),col="red",ylim=c
   geom_bar(stat = 'identity',fill = 'blue')
 hist(histogram)
 ```
-## Including Plots
 
-
-
+world population dataset
 ```{r, echo=FALSE}
 #-------------------------------------------------------------------
 population <- read.csv("~/Desktop/world-population-by-world-regions-post-1820.csv")
@@ -86,7 +84,7 @@ population$Area <- as.character(population$Area)
 #unique( population$Year )
 ```
 
-Filter years
+Filter years and plot basic plots
 ```{r, echo=FALSE}
 #filter out years
 population <- population[population$Year >= "1961",]
@@ -161,7 +159,7 @@ unique(population_compared$Area)
 #FINAL INSIGHTS, COUNTRIES MAY BE CHANGED LATER, CHART WILL BE UPGRAEDED TO LOOK NICER
 # plot, using the aesthetics argument 'colour'
 ggplot(data = population_compared, aes(x = Year, y = Population, colour = Area)) + geom_line()+
-ggtitle("Change of population across the years") 
+ggtitle("Change of population across the years for selected countries") 
 
 
 #and facet wrap
@@ -172,8 +170,7 @@ population_growth<-ggplot(population_compared) + geom_line(aes(x=Year, y=Populat
 population_growth 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-You can also embed plots, for example:
+merge datasets
 
 ```{r pressure, echo=FALSE}
 FAOdataset<-merge(livestock, population)
@@ -185,8 +182,7 @@ FAOdataset$Area <- as.character(FAOdataset$Area)
 #View(FAOdataset)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-You can also embed plots, for example:
+
 
 ## INSIGHT II
 ```{r, echo=FALSE}
@@ -290,92 +286,3 @@ p22<-ggplot(production_compared,aes(x=Year,y=production_sum_total,fill=Item))
 p22 + geom_bar(stat='identity') + ggtitle('Production of chicken and Pigs in tonnes') + xlab('Year') + ylab('total production') + theme(plot.title = element_text(hjust = 0.5)) + guides(fill = guide_legend(title='Meat')) 
 
 ```
-
-
-```{r pressure, echo=FALSE}
-#total population in UK across the years
-total_population_poland <- population_poland %>%
-  group_by(Year) %>%
-  summarize(population_sum_poland = sum(Population))
-total_population_poland
-total_population
-ppoland <- ggplot() + geom_line(aes(y = population_sum_poland, x = Year),
-                 data = total_population_poland)
-ppoland
-
-
-
-
-
-p <- ggplot() + 
-   geom_line(aes(Year, x), df, colour = "red") + 
-   geom_line(aes(Year, y), df, colour = "blue") + 
-   xlab("time") + ylab("value")
-
-
-
-
-
-
-
-
-#Egg production
-eggs_production<-FAOdataset %>%
-  filter(Item=="Eggs, hen, in shell (number)") 
-eggs_production
-
-#total population in UK across the years
-total_eggs <- eggs_production %>%
-  group_by(Year) %>%
-  summarize(eggs_sum = sum(Value))
-total_eggs
-
-p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
-                 data = total_eggs)
-p3
-
-
-
-#This is meat production (selected only, camel meat of no interest for us) 
-
-#lets filter out what we do not want
-#ireland meet production and below milk production
-ireland_food_prod<-FAOdataset %>%
-  filter(Item=="Meat, pig" | Item=="Meat, chicken")
-ireland_food_prod %>%
-  filter(Area=="Germany")
-ireland_food_prod
-germany_grid<-ggplot(ireland_food_prod) + geom_line(aes(x=Year, y=Value, colour=Item)) +
-  facet_wrap(~Item) +
-  guides(col=guide_legend(ncol=1))
-germany_grid
-ireland_food_prod
-# plot, using the aesthetics argument 'colour'
-ggplot(data = ireland_food_prod, aes(x = Year, y = Value, colour = Item)) + geom_line()
-
-
-
-
-#sum
-total_ireland_sum <- ireland_food_prod %>%
-  group_by(Year) %>%
-  summarize(mean_ireland_sum = sum(Value))
-total_ireland_sum
-
-# Basic density plot
-qplot(Year, data = total_ireland_sum, geom = "Value")
-# Change density plot line color by group (sex)
-# change line type
-qplot(Year, data = ireland_food_prod, geom = "Value",
-    color = Item, linetype = Item)
-
-
-#plotting irish production of meat
-total_eggs <- eggs_production %>%
-  group_by(Year) %>%
-  summarize(eggs_sum = sum(Value))
-total_eggs
-
-p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
-                 data = total_eggs)
-p3
