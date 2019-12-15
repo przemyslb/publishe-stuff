@@ -16,19 +16,18 @@ library(gsubfn)
 library(proto)
 library(RSQLite)
 library(sp)
+
 ```
 
 ## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Loading and exploring my datasets. Plus prep work.
 
 ```{r cars}
 ## Fix for unreadable numbers
 options(scipen = 999)
 #load dataset
-livestock <- read.csv("~/FAOSTAT_data_11-30-2019.csv")
+livestock <- read.csv("~/Desktop/home folder for R/FAOSTAT_data_11-30-2019.csv")
 # remove columns
 livestock$Flag<- NULL
 livestock$Flag.Description <- NULL
@@ -42,6 +41,7 @@ livestock$Domain.Code <- NULL
 livestock <- livestock[livestock$Element == "Production",]
 
 #View(livestock)
+#convert variables
 livestock$Item <- as.character(livestock$Item)
 livestock$Element <- as.character(livestock$Element)
 livestock$Value <- as.numeric(livestock$Value)
@@ -54,25 +54,23 @@ unique(livestock$Element )
 #stats
 colnames(livestock)
 #nrow(livestock)
-str(livestock)
+#str(livestock)
 #View(livestock)
 
 ```
-HISTOGRAM FOR IMPORTANT COLUMNS.
+HISTOGRAM FOR TOTAL  LIVESTOCK PRODUCTION.
 ```{r pressure, echo=FALSE}
-histogram <- livestock$Value
 hist(histogram, breaks=5, main="With breaks=4", xlim=c(-10,100),col="red",ylim=c(0,25))+
   geom_bar(stat = 'identity',fill = 'blue')
 hist(histogram)
-ddd <- livestock$Year
 ```
 ## Including Plots
 
-You can also embed plots, for example:
+
 
 ```{r, echo=FALSE}
 #-------------------------------------------------------------------
-population <- read.csv("~/world-population-by-world-regions-post-1820.csv")
+population <- read.csv("~/Desktop/world-population-by-world-regions-post-1820.csv")
 #change column to numeric
 population$Year <- as.numeric(population$Year)
 # remove columns
@@ -84,12 +82,9 @@ colnames(population)[colnames(population)=="Entity"] <- "Area"
 #colnames(population)
 population$Area <- as.character(population$Area)
 #View(population)
-str(population)
+#str(population)
 #unique( population$Year )
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-You can also embed plots, for example:
 
 Filter years
 ```{r, echo=FALSE}
@@ -100,10 +95,7 @@ population <- population[population$Year != "200",]
 population
 #check if only the right years were loaded
 #Check if years loaded properly 
-unique(population$Year)
-
-
-
+#unique(population$Year)
 
 #total world population across the years
 total_population <- population %>%
@@ -129,13 +121,13 @@ p2
 
 population_germany<-population %>%
   filter(Area=="Germany") 
-population_germany
-#total population in UK across the years
+#population_germany
+#total population in Germany across the years
 total_population_germany <- population_germany %>%
   group_by(Year) %>%
   summarize(population_sum_germany = sum(Population))
-total_population_germany
-total_population
+#total_population_germany
+#total_population
 pgermany <- ggplot() + geom_line(aes(y = population_sum_germany, x = Year),
                  data = total_population_germany)
 pgermany
@@ -155,23 +147,29 @@ ppoland
 
 #compare population growth in different countries
 population_compared<-population %>%
-  filter(Area=="Germany"| Area=="France"| Area=="Spain") 
+  filter(Area=="Egypt"| Area=="France"| Area=="Turkey"| Area=="Germany"| Area=="Poland") 
 population_compared
 unique(population_compared$Area)
 
+```
+
+## INSIGHT I
+```{r pressure, echo=FALSE}
+
+#choose countries for analysis
+
 #FINAL INSIGHTS, COUNTRIES MAY BE CHANGED LATER, CHART WILL BE UPGRAEDED TO LOOK NICER
 # plot, using the aesthetics argument 'colour'
-ggplot(data = population_compared, aes(x = Year, y = Population, colour = Area)) + geom_line()
-#this time bar chart comparing population growth
-p<-ggplot(population_compared,aes(x=Year,y=Population,fill=Area))  
-p + geom_bar(stat='identity') + ggtitle('Population growth') + xlab('Year') + ylab('Population numbers') + theme(plot.title = element_text(hjust = 0.5)) + guides(fill = guide_legend(title='Area')) 
-p
+ggplot(data = population_compared, aes(x = Year, y = Population, colour = Area)) + geom_line()+
+ggtitle("Change of population across the years") 
 
+
+#and facet wrap
 #population growth facet grid. now choose which will be the final and make nicer
-b<-ggplot(population_compared) + geom_line(aes(x=Year, y=Population, colour=Area)) +
+population_growth<-ggplot(population_compared) + geom_line(aes(x=Year, y=Population, colour=Area)) +
   facet_wrap(~Area) +
   guides(col=guide_legend(ncol=1))
-b
+population_growth 
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
@@ -180,55 +178,147 @@ You can also embed plots, for example:
 ```{r pressure, echo=FALSE}
 FAOdataset<-merge(livestock, population)
 FAOdataset
-colnames(FAOdataset)
-nrow(FAOdataset)
-str(FAOdataset)
+FAOdataset$Area <- as.character(FAOdataset$Area)
+#colnames(FAOdataset)
+#nrow(FAOdataset)
+#str(FAOdataset)
+#View(FAOdataset)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 You can also embed plots, for example:
 
+## INSIGHT II
 ```{r, echo=FALSE}
- #production of different items compared
+#View(FAOdataset)
+ireland1<-FAOdataset %>%
+  filter(Item=="Eggs, hen, in shell (number)")%>%
+  filter(Area=="Ireland")
+str(ireland1)
+## first iterations
+#Eggs production across the years and population growth
+ireland_plot <- ggplot() + 
+   geom_line(aes(Year, Value), ireland1, colour = "red") + 
+   geom_line(aes(Year, Population), ireland1, colour = "blue") + 
+   #geom_line(aes(Year, z), ireland1, colour = "darkgreen") + 
+   xlab("Time") + ylab("value") +
+  labs(color = "YOUR LEGEND TITLE")
+ireland_plot
+
+#Milk production across the years and population growth
+ireland2<-FAOdataset %>%
+  filter(Item=="Milk, whole fresh cow")%>%
+  filter(Area=="Ireland")
+#str(ireland2)
+ireland_plot <- ggplot() + 
+   geom_line(aes(Year, Value), ireland2, colour = "red") + 
+   geom_line(aes(Year, Population), ireland2, colour = "blue") + 
+   #geom_line(aes(Year, z), ireland2, colour = "darkgreen") + 
+   xlab("Time") + ylab("value") +
+  labs(color = "YOUR LEGEND TITLE")
+ireland_plot
+
+
+#Insights 3 second iteration
+# Plot the data
+plot(ireland2$Year,ireland2$Value,  type ="l", ylab = "", xlab = "Time")
+par(new = TRUE)
+plot(ireland2$Year,ireland2$Population, type = "l", yaxt = "n", ylab= "", xlab = "", lty = 2)
+
+#Insights 3 final iteration
+# Plot the data
+plot(ireland1$Year,ireland1$Value,  type ="l", ylab = "", main = "Irish population and Egg production  (in thousands)", xlab = "Time",
+     col = "blue")
+par(new = TRUE)
+plot(ireland1$Year,ireland1$Population, type = "l", xaxt = "n", yaxt = "n", ylab= "", xlab = "", col = "red", lty = 2)
+axis(side = 4)
+mtext("beaver2 temperature", side = 4, line = 3)
+legend("topleft", c("population of Ireland", "Egg production"),
+       col = c("blue", "red"), lty = c(1, 2))
+
+#Insights 3 final iteration
+# Plot the data
+plot(ireland2$Year,ireland2$Value,  type ="l", ylab = "", main = "Irish population and milk production", xlab = "Time",
+     col = "blue")
+par(new = TRUE)
+plot(ireland2$Year,ireland2$Population, type = "l", xaxt = "n", yaxt = "n", ylab= "", xlab = "", col = "red", lty = 2)
+axis(side = 4)
+mtext("", side = 4, line = 3)
+legend("topleft", c("Population of Ireland", "milk production"),
+       col = c("blue", "red"), lty = c(1, 2))
+
+```
 
 
 
 
-b<-ggplot(livestock) + geom_line(aes(x=Year, y=Value, colour=Item)) +
-  facet_wrap(~Item) +
-  guides(col=guide_legend(ncol=1))
-b
 
-
-#teraz musisz zrobic osobno do eggs, meats together i wool osobno.
-#separate for eggs
-#meats together
-#Wool
-
-
-
-
-#Eggs 
-eggs_production<-livestock %>%
-  filter(Item=="Eggs, hen, in shell (number)") 
-eggs_production
-#total population in UK across the years
+```{r, echo=FALSE}
+#total production of eggs
 total_eggs <- eggs_production %>%
   group_by(Year) %>%
   summarize(eggs_sum = sum(Value))
-total_eggs
+
 
 p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
                  data = total_eggs)
 p3
+ #production of different items compared / line chart
+production_compared<-FAOdataset %>%
+  filter(Item=="Meat, chicken"| Item=="Meat, pig") %>%
+  group_by(Year, Item) %>%
+  summarize(production_sum_total = sum(Value))
+
+#unique(production_compared$Item)
+ggplot(data = production_compared, aes(x = Year, y = production_sum_total, colour = Item)) + geom_line()
+ #production of different items compared
+milk_compared<-FAOdataset %>%
+  filter(Item=="Milk, whole fresh cow") %>%
+  group_by(Year, Item) %>%
+  summarize(production_sum_total = sum(Value))
+unique(milk_compared$Item)
+ggplot(data = milk_compared, aes(x = Year, y = production_sum_total, colour = Item)) + geom_line()
 
 
-
+#facet grid overview pr global production of choosen food items
+b<-ggplot(livestock) + geom_line(aes(x=Year, y=Value, colour=Item)) +
+  facet_wrap(~Item) +
+  guides(col=guide_legend(ncol=1))
+b
+#this is my insight
+p22<-ggplot(production_compared,aes(x=Year,y=production_sum_total,fill=Item))  
+p22 + geom_bar(stat='identity') + ggtitle('Production of chicken and Pigs in tonnes') + xlab('Year') + ylab('total production') + theme(plot.title = element_text(hjust = 0.5)) + guides(fill = guide_legend(title='Meat')) 
 
 ```
 
 
 ```{r pressure, echo=FALSE}
+#total population in UK across the years
+total_population_poland <- population_poland %>%
+  group_by(Year) %>%
+  summarize(population_sum_poland = sum(Population))
+total_population_poland
+total_population
+ppoland <- ggplot() + geom_line(aes(y = population_sum_poland, x = Year),
+                 data = total_population_poland)
+ppoland
+
+
+
+
+
+p <- ggplot() + 
+   geom_line(aes(Year, x), df, colour = "red") + 
+   geom_line(aes(Year, y), df, colour = "blue") + 
+   xlab("time") + ylab("value")
+
+
+
+
+
+
+
+
 #Egg production
 eggs_production<-FAOdataset %>%
   filter(Item=="Eggs, hen, in shell (number)") 
@@ -289,64 +379,3 @@ total_eggs
 p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
                  data = total_eggs)
 p3
-
-
-
-#plotting irish production of milk
-ireland_milk_prod<-FAOdataset %>%
-  filter(Item=="Milk, whole fresh cow")
-ireland_milk_prod %>%
-  filter(Area=="Ireland")
-ireland_milk_prod
-total_milk <- ireland_milk_prod %>%
-  group_by(Year) %>%
-  summarize(milk_sum = sum(Value))
-total_eggs
-
-milk <- ggplot() + geom_line(aes(y = milk_sum, x = Year),
-                 data = total_milk)
-milk
-
-
-p1 <- ggplot(data = studentresults_oral, aes(x = Name, y = average_mark_oral)) +
-  geom_bar(stat = "identity", fill = "steelblue") +
-  geom_text(aes(y = average_mark_oral, label = average_mark_oral))
-p1
-
-
-
-
-#total population in UK across the years
-total_eggs <- eggs_production %>%
-  group_by(Year) %>%
-  summarize(eggs_sum = sum(Value))
-total_eggs
-
-p3 <- ggplot() + geom_line(aes(y = eggs_sum, x = Year),
-                 data = total_eggs)
-p3
-```
-
-
-
-
-livestock %>% 
-  group_by(Year) %>% 
-  summarise(value=sum(Value)) %>% 
-  ungroup
-plot2<-ggplot(aes(Year, Value, colour=Item)) +
-  geom_line() +
-  geom_point()
-
-
-# Plot relationship between age and results for mark oral with colors
-scatter2 <- ggplot(livestock, aes(x=livestock$Year,y=livestock$Value, color=livestock$Item))+
-  geom_point() +
-  stat_smooth(method = 'lm', se= FALSE)+
-  labs(title = 'Scatter Plot #2 - Age vs Written Marks by Subject', x = 'Year', y = 'Value')
-scatter2
-```
-
-
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
